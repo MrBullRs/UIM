@@ -67,32 +67,14 @@ public class GroupIronman extends Plugin
 		{
 			try
 			{
-				MenuEntry[] allMenuEntries = client.getMenuEntries();
 				List<Integer> invalidOptions = new ArrayList<>();
-				List<MenuEntry> validMenuEntries = new ArrayList<>();
 				String option = menuEntryAdded.getOption();
 
-				String targetName = menuEntryAdded.getTarget();
-
-				int idx = targetName.indexOf('>');
-
-
-				int endOfName =  targetName.indexOf("<", idx);
-
-				if (idx != -1)
-				{
-					if(endOfName != -1) {
-						targetName = targetName.substring(idx + 1, endOfName);
-					}
-					else
-					{
-						targetName = targetName.substring(idx + 1);
-					}
-				}
+				String targetName = RemoveHtmlFromTargetName(menuEntryAdded.getTarget());
 
 				if(option.equals("Trade with"))
 				{
-					if (!teamMembers.contains(targetName))
+					if (!PlayerInGroup(targetName))
 					{
 						invalidOptions.add(menuEntryAdded.getIdentifier());
 					}
@@ -102,25 +84,9 @@ public class GroupIronman extends Plugin
 					invalidOptions.add(menuEntryAdded.getIdentifier());
 				}
 
-				for (MenuEntry allMenuEntry : allMenuEntries)
-				{
-					boolean optionValid = true;
+				SetMenuOptions(invalidOptions);
 
-					for (Integer invalidOption : invalidOptions)
-					{
-						if (allMenuEntry.getIdentifier() == invalidOption)
-						{
-							optionValid = false;
-							break;
-						}
-					}
-					if (optionValid)
-					{
-						validMenuEntries.add(allMenuEntry);
-					}
-				}
 
-				client.setMenuEntries(validMenuEntries.toArray(new MenuEntry[0]));
 			}
 			catch (Exception e)
 			{
@@ -172,11 +138,58 @@ public class GroupIronman extends Plugin
 	{
 		for(String s : teamMembers)
 		{
-			if(s.equals(name))
+			if(s.compareToIgnoreCase(name) == 0)
 			{
 				return true;
 			}
 		}
 		return false;
 	}
+
+	private String RemoveHtmlFromTargetName(String targetName)
+	{
+		int idx = targetName.indexOf('>');
+
+
+		int endOfName =  targetName.indexOf("<", idx);
+
+		if (idx != -1)
+		{
+			if(endOfName != -1) {
+				targetName = targetName.substring(idx + 1, endOfName);
+			}
+			else
+			{
+				targetName = targetName.substring(idx + 1);
+			}
+		}
+		return targetName;
+	}
+
+	private void SetMenuOptions(List<Integer> invalidOptions)
+	{
+		MenuEntry[] allMenuEntries = client.getMenuEntries();
+		List<MenuEntry> validMenuEntries = new ArrayList<>();
+
+		for (MenuEntry allMenuEntry : allMenuEntries)
+		{
+			boolean optionValid = true;
+
+			for (Integer invalidOption : invalidOptions)
+			{
+				if (allMenuEntry.getIdentifier() == invalidOption)
+				{
+					optionValid = false;
+					break;
+				}
+			}
+			if (optionValid)
+			{
+				validMenuEntries.add(allMenuEntry);
+			}
+		}
+
+		client.setMenuEntries(validMenuEntries.toArray(new MenuEntry[0]));
+	}
+
 }
